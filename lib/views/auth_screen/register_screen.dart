@@ -1,13 +1,67 @@
 import 'package:flutter/material.dart';
 import 'package:dartproyect/views/components/FormField.dart';
+import 'package:dartproyect/controllers/AuthController.dart';
+import 'package:dartproyect/services/manage_http_response.dart';
 
-class RegisterScreen extends StatelessWidget {
-  RegisterScreen({super.key});
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
 
+  @override
+  State<RegisterScreen> createState() => _RegisterScreenState();
+}
+
+class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController verifypasswordController = TextEditingController();
+  final TextEditingController verifypasswordController =
+      TextEditingController();
+
+  final AuthController _authController = AuthController();
+  bool _isLoading = false;
+
+  void _showSnackBar(String message, bool isError) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red : Colors.green,
+      ),
+    );
+  }
+
+  Future<void> _handleRegister() async {
+    if (passwordController.text != verifypasswordController.text) {
+      _showSnackBar('Las contraseñas no coinciden', true);
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final response = await _authController.register(
+        name: nameController.text,
+        email: emailController.text,
+        password: passwordController.text,
+      );
+
+      setState(() => _isLoading = false);
+
+      if (!mounted) return;
+
+      if (response.success) {
+        _showSnackBar(response.message ?? 'Registro exitoso', false);
+        Navigator.pop(context);
+      } else {
+        _showSnackBar(
+            response.message ??
+                ManageHttpResponse.getErrorMessage(response.statusCode),
+            true);
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
+      _showSnackBar('Error de conexión: $e', true);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +75,7 @@ class RegisterScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
+                  const Text(
                     'Create an Account',
                     style: TextStyle(
                       fontSize: 23,
@@ -66,32 +120,31 @@ class RegisterScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
                   InkWell(
-                    onTap: () {
-
-                    },
+                    onTap: _isLoading ? null : _handleRegister,
                     child: Container(
                       width: double.infinity,
                       height: 50,
                       decoration: BoxDecoration(
-                        color: Colors.orange,
+                        color: _isLoading ? Colors.grey : Colors.orange,
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: const Center(
-                        child: Text(
-                          "Register",
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: Colors.white,
-                          ),
-                        ),
+                      child: Center(
+                        child: _isLoading
+                            ? const CircularProgressIndicator(
+                                color: Colors.white)
+                            : const Text(
+                                "Register",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.white,
+                                ),
+                              ),
                       ),
                     ),
                   ),
                   const SizedBox(height: 15),
                   InkWell(
-                    onTap: () {
-                      Navigator.pop(context);
-                    },
+                    onTap: () => Navigator.pop(context),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: const [
@@ -114,5 +167,14 @@ class RegisterScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    emailController.dispose();
+    passwordController.dispose();
+    verifypasswordController.dispose();
+    super.dispose();
   }
 }
