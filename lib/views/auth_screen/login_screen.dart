@@ -2,10 +2,10 @@ import 'package:dartproyect/views/auth_screen/register_screen.dart';
 import 'package:dartproyect/views/components/FormField.dart';
 import 'package:dartproyect/controllers/AuthController.dart';
 import 'package:dartproyect/services/manage_http_response.dart';
+import 'package:dartproyect/services/user_service.dart';
 import 'package:dartproyect/views/AppScreens/home_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:dartproyect/models/user.dart';
-
+import 'package:dartproyect/models/User.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -44,13 +44,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (response.success) {
         _showSnackBar(response.message ?? 'Inicio de sesión exitoso', false);
-        
-        Navigator.pushReplacement(context, MaterialPageRoute(builder:
-            (context)=>HomeDashboard( user: response.data!.user!.toJson())
-        )
-        );
-        
-        // Aquí puedes navegar a la pantalla principal
+
+        Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (context) =>
+                    MainScreen(user: response.data!.user!.toJson())));
       } else {
         _showSnackBar(
             response.message ??

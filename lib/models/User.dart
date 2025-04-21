@@ -2,36 +2,28 @@ class User {
   final String id;
   final String name;
   final String email;
-  final String? token;
-  final DateTime createdAt;
+  final String createdAt;
 
   User({
     required this.id,
     required this.name,
     required this.email,
-    this.token,
     required this.createdAt,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: json['id'] ?? '',
+      id: json['id'] ?? json['_id'] ?? '',
       name: json['name'] ?? '',
       email: json['email'] ?? '',
-      token: json['token'],
-      createdAt: json['createdAt'] != null
-          ? DateTime.parse(json['createdAt'])
-          : DateTime.now(),
+      createdAt: json['createdAt'] ?? '',
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'email': email,
-      'token': token,
-      'createdAt': createdAt.toIso8601String(),
-    };
-  }
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'email': email,
+        'createdAt': createdAt,
+      };
 }

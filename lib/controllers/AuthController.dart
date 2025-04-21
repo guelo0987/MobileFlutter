@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import '../models/User.dart';
 import '../services/manage_http_response.dart';
 import '../services/env.dart';
+import '../services/user_service.dart';
 
 class AuthController {
   Future<ApiResponse<AuthData>> register({
@@ -21,10 +22,18 @@ class AuthController {
         }),
       );
 
-      return ManageHttpResponse.handleResponse<AuthData>(
+      final apiResponse = await ManageHttpResponse.handleResponse<AuthData>(
         response: response,
         onSuccess: (json) => AuthData.fromJson(json),
       );
+
+      // Si el registro es exitoso, guardamos el token y los datos del usuario
+      if (apiResponse.success && apiResponse.data?.token != null) {
+        final userData = apiResponse.data!.user?.toJson() ?? {};
+        await UserService.saveToken(apiResponse.data!.token!, userData);
+      }
+
+      return apiResponse;
     } catch (e) {
       return ApiResponse(
         success: false,
@@ -48,10 +57,18 @@ class AuthController {
         }),
       );
 
-      return ManageHttpResponse.handleResponse<AuthData>(
+      final apiResponse = await ManageHttpResponse.handleResponse<AuthData>(
         response: response,
         onSuccess: (json) => AuthData.fromJson(json),
       );
+
+      // Si el login es exitoso, guardamos el token y los datos del usuario
+      if (apiResponse.success && apiResponse.data?.token != null) {
+        final userData = apiResponse.data!.user?.toJson() ?? {};
+        await UserService.saveToken(apiResponse.data!.token!, userData);
+      }
+
+      return apiResponse;
     } catch (e) {
       return ApiResponse(
         success: false,
